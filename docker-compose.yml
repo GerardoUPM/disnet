@@ -1,0 +1,84 @@
+
+version: '2'
+
+services:
+  disnet-database:
+    image: 'mysql:5.7'
+    restart: unless-stopped
+    container_name: disnet-database-container
+    #expose:
+    #  - "3307"
+    ports:
+      - "8081:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 'NewPwd2017'
+      #MYSQL_USER: ''
+      #MYSQL_PASSWORD: ''
+    networks:
+      disnet-network:
+        ipv4_address: 172.28.0.2
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
+
+  disnet-web:
+    image: disnet-web
+    build: dockerfile/disnet_web/.
+    restart: unless-stopped
+    container_name: disnet-web-container
+    ports:
+      - "8082:8080"
+    links:
+      - disnet-database
+    networks:
+      disnet-network:
+        ipv4_address: 172.28.0.3
+
+  disnet-tvp_api_rest:
+    image: disnet-tvp_api_rest
+    build: dockerfile/term_validation_procedure-api_rest/.
+    restart: unless-stopped
+    container_name: disnet-tvp_api_rest-container
+    ports:
+      - "8083:8080"
+    networks:
+      disnet-network:
+        ipv4_address: 172.28.0.4
+
+  disnet-metamap_api_rest:
+    image: disnet-metamap_api_rest
+    build: ./dockerfile/metamap-api_rest/.
+    restart: unless-stopped
+    container_name: disnet-metamap_api_rest-container
+    ports:
+      - "8084:8080"
+    #metamap environment
+    environment:
+      METAMAP_HOST: 172.28.0.1
+      METAMAP_PORT: 8085
+    networks:
+      disnet-network:
+        ipv4_address: 172.28.0.5
+
+  disnet-metamap2016v2:
+    image: disnet-metamap2016v2
+    build: ./dockerfile/metamap2016v2/.
+    restart: unless-stopped
+    container_name: disnet-metamap2016v2-container
+    ports:
+      - "8085:8066"
+    networks:
+      disnet-network:
+        ipv4_address: 172.28.0.6
+
+
+
+networks:
+  disnet-network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.28.0.0/16
+         gateway: 172.28.0.1
+  
+
+    
